@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Technologies Quiz - CSC 3222</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .quiz-container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .progress-bar {
+            width: 100%;
+            background: #ddd;
+            height: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .progress {
+            height: 100%;
+            background: #4CAF50;
+            width: 0%;
+            border-radius: 10px;
+            transition: width 0.3s;
+        }
+        .question {
+            margin-bottom: 20px;
+        }
+        .question h3 {
+            margin: 0 0 10px;
+            color: #333;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .option {
+            padding: 10px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .option:hover {
+            background: #e0e0e0;
+        }
+        .option.selected {
+            background: #4CAF50;
+            color: white;
+        }
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            background: #333;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:disabled {
+            background: #999;
+            cursor: not-allowed;
+        }
+        button:hover:not(:disabled) {
+            background: #555;
+        }
+        #quiz-section {
+            display: block;
+        }
+        #result-section {
+            display: none;
+        }
+        .result-item {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .result-item.correct {
+            background: #e6ffe6;
+        }
+        .result-item.incorrect {
+            background: #ffe6e6;
+        }
+        .result-item h4 {
+            margin: 0 0 10px;
+        }
+        .result-item p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <h1>Web Technologies Quiz - CSC 3222</h1>
+        <div id="quiz-section">
+            <div class="progress-bar">
+                <div class="progress" id="progress"></div>
+            </div>
+            <div class="question">
+                <h3 id="question-text"></h3>
+                <div class="options" id="options"></div>
+            </div>
+            <div class="buttons">
+                <button id="prev-btn" disabled>Previous</button>
+                <button id="next-btn">Next</button>
+            </div>
+        </div>
+        <div id="result-section"></div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "What does HTML stand for?",
+                options: ["Hyper Text Markup Language", "Hyperlink Text Management Language", "High Text Markup Language", "Hyper Tool Multi Language"],
+                answer: 0,
+                explanation: "HTML stands for Hyper Text Markup Language, which is the standard language for creating web pages, as introduced by Tim Berners-Lee in 1993 (Week 2 lecture)."
+            },
+            {
+                question: "Who wrote the first version of HTML in 1993?",
+                options: ["Bill Gates", "Tim Berners-Lee", "Steve Jobs", "Mark Zuckerberg"],
+                answer: 1,
+                explanation: "Tim Berners-Lee, the inventor of the World Wide Web, wrote the first version of HTML in 1993 to structure content on the web (Week 2 lecture)."
+            },
+            {
+                question: "Which HTML tag is used to define a paragraph?",
+                options: ["<paragraph>", "<p>", "<para>", "<text>"],
+                answer: 1,
+                explanation: "The `<p>` tag is used to define a paragraph in HTML, as it is the standard element for textual content blocks (Week 2 lecture)."
+            },
+            {
+                question: "Which HTML version introduced the `<video>` tag?",
+                options: ["HTML 1.2", "HTML 4.01", "HTML5", "XHTML"],
+                answer: 2,
+                explanation: "HTML5 introduced the `<video>` tag to support native video playback without plugins, a significant feature of modern web development (Week 2 lecture)."
+            },
+            {
+                question: "What is the purpose of the `<link>` tag in the `<head>` section?",
+                options: ["To define a hyperlink", "To include external resources like stylesheets or favicons", "To embed images", "To create a navigation bar"],
+                answer: 1,
+                explanation: "The `<link>` tag in the `<head>` section is used to include external resources like CSS stylesheets or favicons, not for hyperlinks (Week 2 lecture)."
+            },
+            {
+                question: "Which attribute specifies the address of a hyperlink in an `<a>` tag?",
+                options: ["src", "href", "link", "url"],
+                answer: 1,
+                explanation: "The `href` attribute in the `<a>` tag specifies the URL of the hyperlink, enabling navigation to another resource (Week 2 lecture)."
+            },
+            {
+                question: "In XML, what must every document have?",
+                options: ["A `<body>` tag", "A root element", "A `<head>` tag", "A `<title>` tag"],
+                answer: 1,
+                explanation: "Every XML document must have a single root element that encloses all other elements, ensuring a valid structure (Week 2 lecture)."
+            },
+            {
+                question: "Which of the following is NOT a valid XML naming rule?",
+                options: ["Names can contain letters and numbers", "Names can start with a number", "Names cannot contain spaces", "Names cannot start with 'xml'"],
+                answer: 1,
+                explanation: "XML names cannot start with a number; they must begin with a letter or underscore to ensure valid syntax (Week 2 lecture)."
+            },
+            {
+                question: "What does DOM stand for?",
+                options: ["Document Object Model", "Data Object Management", "Dynamic Object Model", "Document Oriented Model"],
+                answer: 0,
+                explanation: "DOM stands for Document Object Model, a programming interface for accessing and manipulating HTML and XML documents (Week 2 lecture)."
+            },
+            {
+                question: "Which HTML element is used to create a table row?",
+                options: ["<td>", "<tr>", "<th>", "<table>"],
+                answer: 1,
+                explanation: "The `<tr>` tag defines a table row in HTML, containing `<td>` or `<th>` elements for cells (Week 2 lecture)."
+            },
+            {
+                question: "Which PHP superglobal is used to collect form data sent via the POST method?",
+                options: ["$_GET", "$_POST", "$_REQUEST", "$_SERVER"],
+                answer: 1,
+                explanation: "`$_POST` is the superglobal used to collect form data sent via the POST method, ideal for secure data submission (Week 3 lecture)."
+            },
+            {
+                question: "What does the `$_SERVER['PHP_SELF']` variable return?",
+                options: ["The user’s IP address", "The filename of the currently executing script", "The server’s hostname", "The form’s action URL"],
+                answer: 1,
+                explanation: "`$_SERVER['PHP_SELF']` returns the filename of the currently executing PHP script, useful for self-referencing forms (Week 3 lecture)."
+            },
+            {
+                question: "Why is form validation important in PHP?",
+                options: ["To improve page load speed", "To protect against hackers and spammers", "To reduce server storage", "To simplify HTML code"],
+                answer: 1,
+                explanation: "Form validation in PHP protects against hackers and spammers by ensuring data integrity and security (Week 3 lecture)."
+            },
+            {
+                question: "Which function is used to prevent XSS attacks in PHP form handling?",
+                options: ["strip_tags()", "htmlspecialchars()", "addslashes()", "urlencode()"],
+                answer: 1,
+                explanation: "`htmlspecialchars()` converts special characters to HTML entities, preventing XSS attacks by sanitizing user input (Week 3 lecture)."
+            },
+            {
+                question: "Which validation rule applies to the 'Name' field in the lecture example?",
+                options: ["Optional, can contain numbers", "Required, must only contain letters and whitespace", "Required, must contain a valid URL", "Optional, multi-line input"],
+                answer: 1,
+                explanation: "The 'Name' field in the lecture example is required and must only contain letters and whitespace to ensure valid input (Week 3 lecture)."
+            },
+            {
+                question: "What is the purpose of the `action` attribute in an HTML form?",
+                options: ["To specify the form’s method", "To define the URL where form data is sent", "To style the form", "To validate form data"],
+                answer: 1,
+                explanation: "The `action` attribute specifies the URL where form data is sent for processing, typically a PHP script (Week 3 lecture)."
+            },
+            {
+                question: "Which HTTP method is more secure for sending sensitive form data?",
+                options: ["GET", "POST", "PUT", "DELETE"],
+                answer: 1,
+                explanation: "POST is more secure than GET for sending sensitive data, as it does not expose data in the URL (Week 3 lecture)."
+            },
+            {
+                question: "What happens if a required field is left empty in a validated PHP form?",
+                options: ["The form submits without error", "An error message is displayed", "The form redirects to another page", "The form data is saved to a file"],
+                answer: 1,
+                explanation: "If a required field is empty, PHP validation displays an error message to prompt the user to fill it (Week 3 lecture)."
+            },
+            {
+                question: "Which PHP function can be used to check if a variable is set?",
+                options: ["isset()", "empty()", "is_null()", "defined()"],
+                answer: 0,
+                explanation: "`isset()` checks if a variable is set and not null, commonly used in form validation (Week 3 lecture)."
+            },
+            {
+                question: "In PHP form handling, where is form data stored after submission?",
+                options: ["In a database", "In the `$_GET` or `$_POST` superglobal", "In a session variable", "In a cookie"],
+                answer: 1,
+                explanation: "Form data is stored in `$_GET` or `$_POST` superglobals after submission, depending on the method used (Week 3 lecture)."
+            },
+            {
+                question: "Which PHP function reads a file and writes it to the output buffer?",
+                options: ["fopen()", "readfile()", "fread()", "fwrite()"],
+                answer: 1,
+                explanation: "`readfile()` reads a file and writes its contents directly to the output buffer, simplifying file output (Week 4 lecture)."
+            },
+            {
+                question: "What does the 'r' mode in `fopen()` indicate?",
+                options: ["Write only", "Read only", "Append only", "Read and write"],
+                answer: 1,
+                explanation: "The 'r' mode in `fopen()` opens a file for reading only, starting from the beginning (Week 4 lecture)."
+            },
+            {
+                question: "What happens when a file is opened in 'w' mode with `fopen()`?",
+                options: ["The file is opened for reading only", "The file’s contents are erased or a new file is created", "Data is appended to the file", "The file is opened for binary reading"],
+                answer: 1,
+                explanation: "The 'w' mode in `fopen()` erases the file’s contents or creates a new file for writing (Week 4 lecture)."
+            },
+            {
+                question: "Which function is used to write data to a file in PHP?",
+                options: ["fread()", "fwrite()", "file_get_contents()", "file_put_contents()"],
+                answer: 1,
+                explanation: "`fwrite()` writes data to a file opened with `fopen()`, allowing precise control over file writing (Week 4 lecture)."
+            },
+            {
+                question: "What does the `simplexml_load_file()` function do?",
+                options: ["Writes data to an XML file", "Reads XML data from a file", "Validates XML syntax", "Converts XML to JSON"],
+                answer: 1,
+                explanation: "`simplexml_load_file()` reads XML data from a file into a SimpleXMLElement object for easy manipulation (Week 4 lecture)."
+            },
+            {
+                question: "What is the purpose of the `include` statement in PHP?",
+                options: ["To execute a database query", "To copy content from another file into the current file", "To create a session", "To upload a file"],
+                answer: 1,
+                explanation: "The `include` statement copies code from another PHP file into the current script, enabling code reuse (Week 4 lecture)."
+            },
+            {
+                question: "What happens if a `require` statement fails to include a file?",
+                options: ["It produces a warning and continues", "It produces a fatal error and stops the script", "It redirects to another page", "It ignores the error"],
+                answer: 1,
+                explanation: "A failed `require` statement produces a fatal error, halting script execution, unlike `include` (Week 4 lecture)."
+            },
+            {
+                question: "Which attribute is required in a form for file uploads in PHP?",
+                options: ["method='post'", "enctype='multipart/form-data'", "action='upload.php'", "type='file'"],
+                answer: 1,
+                explanation: "The `enctype='multipart/form-data'` attribute is required for file uploads to encode files correctly (Week 4 lecture)."
+            },
+            {
+                question: "In the `upload.php` example, what does the `move_uploaded_file()` function do?",
+                options: ["Validates the file type", "Moves the uploaded file to a specified directory", "Deletes the uploaded file", "Reads the file content"],
+                answer: 1,
+                explanation: "`move_uploaded_file()` moves an uploaded file from a temporary location to a specified directory (Week 4 lecture)."
+            },
+            {
+                question: "Which PHP setting must be enabled for file uploads?",
+                options: ["file_uploads = On", "upload_max_filesize = On", "post_max_size = On", "max_execution_time = On"],
+                answer: 0,
+                explanation: "The `file_uploads = On` setting in `php.ini` must be enabled to allow file uploads in PHP (Week 4 lecture)."
+            },
+            {
+                question: "What is a cookie in PHP?",
+                options: ["A small file stored on the server", "A small file embedded on the user’s computer", "A session variable", "A database record"],
+                answer: 1,
+                explanation: "A cookie is a small file stored on the user’s computer to retain data across sessions (Week 5 lecture)."
+            },
+            {
+                question: "Where must the `setcookie()` function be called in a PHP script?",
+                options: ["After the `<html>` tag", "Before the `<html>` tag", "Inside the `<body>` tag", "At the end of the script"],
+                answer: 1,
+                explanation: "`setcookie()` must be called before any output (e.g., `<html>` tag) to set headers correctly (Week 5 lecture)."
+            },
+            {
+                question: "How can you delete a cookie in PHP?",
+                options: ["Set the cookie value to `null`", "Set the expiration date to a past time", "Use the `delete_cookie()` function", "Clear the `$_COOKIE` array"],
+                answer: 1,
+                explanation: "Setting a cookie’s expiration date to a past time deletes it, as it becomes invalid (Week 5 lecture)."
+            },
+            {
+                question: "What is the purpose of the `session_start()` function?",
+                options: ["To destroy a session", "To initialize a session", "To retrieve session data", "To set a session variable"],
+                answer: 1,
+                explanation: "`session_start()` initializes a session, enabling storage of session data on the server (Week 5 lecture)."
+            },
+            {
+                question: "Where is session data stored?",
+                options: ["On the user’s computer", "In the browser’s cache", "On the server", "In a cookie"],
+                answer: 2,
+                explanation: "Session data is stored on the server, with a session ID typically stored in a cookie (Week 5 lecture)."
+            },
+            {
+                question: "Which PHP function removes all session variables?",
+                options: ["session_destroy()", "session_unset()", "session_clear()", "session_end()"],
+                answer: 1,
+                explanation: "`session_unset()` removes all session variables, while `session_destroy()` ends the session (Week 5 lecture)."
+            },
+            {
+                question: "What is the default expiration time for a session in PHP?",
+                options: ["Until the browser is closed", "24 hours", "30 days", "1 hour"],
+                answer: 0,
+                explanation: "By default, a PHP session expires when the browser is closed, unless configured otherwise (Week 5 lecture)."
+            },
+            {
+                question: "Which global variable is used to set session data in PHP?",
+                options: ["$_COOKIE", "$_SESSION", "$_GET", "$_POST"],
+                answer: 1,
+                explanation: "`$_SESSION` is used to store and retrieve session data across multiple pages (Week 5 lecture)."
+            },
+            {
+                question: "What is a common use of sessions in PHP?",
+                options: ["To store temporary user data across multiple pages", "To validate form data", "To upload files", "To connect to a database"],
+                answer: 0,
+                explanation: "Sessions are commonly used to store temporary user data, such as login information, across pages (Week 5 lecture)."
+            },
+            {
+                question: "How can you check if cookies are enabled in PHP?",
+                options: ["Use `cookie_enabled()`", "Check the count of `$_COOKIE`", "Use `isset($_COOKIE)`", "Use `session_status()`"],
+                answer: 1,
+                explanation: "Checking the count of `$_COOKIE` determines if cookies are enabled, as it reflects available cookies (Week 5 lecture)."
+            },
+            {
+                question: "What is MySQL?",
+                options: ["A programming language", "A relational database management system", "A web server", "A PHP framework"],
+                answer: 1,
+                explanation: "MySQL is a relational database management system used for storing and querying data (Week 6 lecture)."
+            },
+            {
+                question: "Which PHP extension is used for MySQL in PHP 5 and later?",
+                options: ["MySQL", "MySQLi", "PDO", "Both b and c"],
+                answer: 3,
+                explanation: "MySQLi and PDO are modern PHP extensions for MySQL, with PDO supporting multiple databases (Week 6 lecture)."
+            },
+            {
+                question: "What is an advantage of PDO over MySQLi?",
+                options: ["Faster performance", "Works with multiple database systems", "Simpler syntax", "Procedural interface only"],
+                answer: 1,
+                explanation: "PDO supports multiple database systems, making it more versatile than MySQLi (Week 6 lecture)."
+            },
+            {
+                question: "Which MySQLi method checks for a connection error?",
+                options: ["connect_error()", "$conn->connect_error", "mysqli_error()", "error_connect()"],
+                answer: 1,
+                explanation: "`$conn->connect_error` checks for connection errors in MySQLi, returning error details if any (Week 6 lecture)."
+            },
+            {
+                question: "What does the `CREATE TABLE` statement do in MySQL?",
+                options: ["Inserts data into a table", "Deletes a table", "Creates a new table", "Updates a table"],
+                answer: 2,
+                explanation: "The `CREATE TABLE` statement creates a new table with specified columns and constraints (Week 6 lecture)."
+            },
+            {
+                question: "Which MySQL data type is used for the `id` column in the lecture example?",
+                options: ["VARCHAR(30)", "INT(6) UNSIGNED AUTO_INCREMENT", "TEXT", "BLOB"],
+                answer: 1,
+                explanation: "`INT(6) UNSIGNED AUTO_INCREMENT` is used for the `id` column to generate unique identifiers (Week 6 lecture)."
+            },
+            {
+                question: "What is the purpose of the `AUTO_INCREMENT` attribute in MySQL?",
+                options: ["To automatically generate unique values for a column", "To set a default value", "To limit the column length", "To make the column nullable"],
+                answer: 0,
+                explanation: "`AUTO_INCREMENT` generates unique values for a column, typically for primary keys (Week 6 lecture)."
+            },
+            {
+                question: "Which PHP function executes multiple SQL queries?",
+                options: ["mysqli_query()", "mysqli_multi_query()", "query_multi()", "exec_multi()"],
+                answer: 1,
+                explanation: "`mysqli_multi_query()` executes multiple SQL queries in a single call, useful for batch operations (Week 6 lecture)."
+            },
+            {
+                question: "In a MySQL `INSERT` query, how should string values be formatted?",
+                options: ["Without quotes", "With single or double quotes", "With backticks", "With parentheses"],
+                answer: 1,
+                explanation: "String values in MySQL `INSERT` queries must be enclosed in single or double quotes (Week 6 lecture)."
+            },
+            {
+                question: "Which MySQLi function closes a database connection?",
+                options: ["mysqli_close()", "close_connection()", "$conn->close()", "Both a and c"],
+                answer: 3,
+                explanation: "Both `mysqli_close()` and `$conn->close()` close a MySQLi database connection (Week 6 lecture)."
+            },
+            {
+                question: "What is the primary purpose of prepared statements in MySQL?",
+                options: ["To increase query speed", "To prevent SQL injection", "To simplify query syntax", "To reduce database size"],
+                answer: 1,
+                explanation: "Prepared statements prevent SQL injection by separating SQL code from user input (Week 8 lecture)."
+            },
+            {
+                question: "In a prepared statement, what does the `?` symbol represent?",
+                options: ["A table name", "A column name", "A parameter placeholder", "A query result"],
+                answer: 2,
+                explanation: "The `?` symbol is a placeholder for parameters in prepared statements, enhancing security (Week 8 lecture)."
+            },
+            {
+                question: "What does the `bind_param()` function do in MySQLi?",
+                options: ["Executes a query", "Binds parameters to a prepared statement", "Closes a connection", "Fetches query results"],
+                answer: 1,
+                explanation: "`bind_param()` binds user inputs to placeholders in a prepared statement, ensuring safe query execution (Week 8 lecture)."
+            },
+            {
+                question: "In the `bind_param('sss', ...)` example, what does 'sss' indicate?",
+                options: ["Three string parameters", "Three integer parameters", "Three double parameters", "Three BLOB parameters"],
+                answer: 0,
+                explanation: "'sss' indicates three string parameters to be bound in a MySQLi prepared statement (Week 8 lecture)."
+            },
+            {
+                question: "Which MySQL clause is used to filter records in a `SELECT` query?",
+                options: ["ORDER BY", "WHERE", "LIMIT", "GROUP BY"],
+                answer: 1,
+                explanation: "The `WHERE` clause filters records in a `SELECT` query based on specified conditions (Week 8 lecture)."
+            },
+            {
+                question: "What does the `fetch_assoc()` function do in MySQLi?",
+                options: ["Executes a query", "Returns query results as an associative array", "Closes a connection", "Binds parameters"],
+                answer: 1,
+                explanation: "`fetch_assoc()` returns query results as an associative array, with column names as keys (Week 8 lecture)."
+            },
+            {
+                question: "Which clause sorts query results in MySQL?",
+                options: ["WHERE", "ORDER BY", "LIMIT", "SELECT"],
+                answer: 1,
+                explanation: "The `ORDER BY` clause sorts query results in ascending or descending order (Week 8 lecture)."
+            },
+            {
+                question: "What does the `LIMIT` clause do in MySQL?",
+                options: ["Filters records based on a condition", "Sorts records in ascending order", "Specifies the number of records to return", "Updates existing records"],
+                answer: 2,
+                explanation: "The `LIMIT` clause specifies the number of records to return in a query, useful for pagination (Week 8 lecture)."
+            },
+            {
+                question: "Which MySQL statement updates existing records in a table?",
+                options: ["INSERT", "UPDATE", "DELETE", "SELECT"],
+                answer: 1,
+                explanation: "The `UPDATE` statement modifies existing records in a MySQL table based on conditions (Week 8 lecture)."
+            },
+            {
+                question: "What is the MySQL data type used to store large binary data like images?",
+                options: ["VARCHAR", "TEXT", "BLOB", "INT"],
+                answer: 2,
+                explanation: "`BLOB` is used to store large binary data, such as images, in MySQL (Week 8 lecture)."
+            },
+            {
+                question: "What does CSS stand for?",
+                options: ["Creative Style Sheets", "Cascading Style Sheets", "Computer Style Sheets", "Colorful Style Sheets"],
+                answer: 1,
+                explanation: "CSS stands for Cascading Style Sheets, used for styling web pages (Week 9 lecture)."
+            },
+            {
+                question: "Which CSS insertion method uses a separate `.css` file?",
+                options: ["Inline CSS", "Internal CSS", "External CSS", "Embedded CSS"],
+                answer: 2,
+                explanation: "External CSS uses a separate `.css` file, linked via the `<link>` tag, for better maintainability (Week 9 lecture)."
+            },
+            {
+                question: "Where is internal CSS defined in an HTML document?",
+                options: ["In the `<body>` section", "In the `<style>` tag within the `<head>` section", "In an external file", "In the `<script>` tag"],
+                answer: 1,
+                explanation: "Internal CSS is defined in a `<style>` tag within the `<head>` section of an HTML document (Week 9 lecture)."
+            },
+            {
+                question: "Which CSS selector targets a specific element by its ID?",
+                options: [".class", "#id", "element", "*"],
+                answer: 1,
+                explanation: "The `#id` selector targets a specific element by its unique ID attribute (Week 9 lecture)."
+            },
+            {
+                question: "What does the CSS universal selector `*` do?",
+                options: ["Selects elements with a specific class", "Selects all elements on the page", "Selects elements with a specific ID", "Selects a single element"],
+                answer: 1,
+                explanation: "The universal selector `*` selects all elements on the page, useful for global styles (Week 9 lecture)."
+            },
+            {
+                question: "Which CSS property specifies the positioning method of an element?",
+                options: ["display", "position", "float", "margin"],
+                answer: 1,
+                explanation: "The `position` property specifies how an element is positioned (e.g., static, relative, absolute) (Week 9 lecture)."
+            },
+            {
+                question: "What is the default value of the CSS `position` property?",
+                options: ["relative", "absolute", "static", "fixed"],
+                answer: 2,
+                explanation: "The default `position` value is `static`, placing elements in the normal document flow (Week 9 lecture)."
+            },
+            {
+                question: "Which CSS property clears an area around the content?",
+                options: ["margin", "padding", "border", "width"],
+                answer: 1,
+                explanation: "The `padding` property clears an area around the content, inside the border (Week 9 lecture)."
+            },
+            {
+                question: "How is the total width of an element calculated in the CSS box model?",
+                options: ["width + padding + border", "width + margin", "width + padding + margin", "width + border + margin"],
+                answer: 0,
+                explanation: "The CSS box model calculates total width as `width + padding + border`, excluding margin (Week 9 lecture)."
+            },
+            {
+                question: "Which CSS position value stays in place even when the page is scrolled?",
+                options: ["relative", "absolute", "fixed", "sticky"],
+                answer: 2,
+                explanation: "The `fixed` position value keeps an element in place relative to the viewport, even when scrolling (Week 9 lecture)."
+            },
+            {
+                question: "What does AJAX stand for?",
+                options: ["Asynchronous JavaScript and XML", "Advanced JavaScript and XML", "Asynchronous JSON and XML", "Active JavaScript and XML"],
+                answer: 0,
+                explanation: "AJAX stands for Asynchronous JavaScript and XML, enabling asynchronous web updates (Week 12 lecture)."
+            },
+            {
+                question: "What is the keystone of AJAX?",
+                options: ["XMLHttpRequest object", "JSON object", "fetch() function", "jQuery library"],
+                answer: 0,
+                explanation: "The `XMLHttpRequest` object is the core of AJAX, handling asynchronous server requests (Week 12 lecture)."
+            },
+            {
+                question: "Which `XMLHttpRequest` property holds the status of the request?",
+                options: ["responseText", "readyState", "statusText", "onload"],
+                answer: 1,
+                explanation: "The `readyState` property indicates the status of an `XMLHttpRequest`, such as completed or in progress (Week 12 lecture)."
+            },
+            {
+                question: "What does a `readyState` value of 4 indicate in AJAX?",
+                options: ["Request not initialized", "Server connection established", "Request finished and response is ready", "Processing request"],
+                answer: 2,
+                explanation: "A `readyState` of 4 means the AJAX request is finished and the response is ready (Week 12 lecture)."
+            },
+            {
+                question: "Which HTTP status code indicates a successful AJAX request?",
+                options: ["404", "200", "403", "500"],
+                answer: 1,
+                explanation: "HTTP status code 200 indicates a successful AJAX request, meaning the server responded correctly (Week 12 lecture)."
+            },
+            {
+                question: "Which method is used to send a POST request in AJAX?",
+                options: ["send()", "open()", "setRequestHeader()", "send(string)"],
+                answer: 3,
+                explanation: "`send(string)` sends a POST request with data in AJAX, after setting the method with `open()` (Week 12 lecture)."
+            },
+            {
+                question: "What is the purpose of `JSON.stringify()` in AJAX?",
+                options: ["To parse JSON data", "To convert a JavaScript object to a JSON string", "To send a request to the server", "To validate JSON data"],
+                answer: 1,
+                explanation: "`JSON.stringify()` converts a JavaScript object to a JSON string for sending in AJAX requests (Week 12 lecture)."
+            },
+            {
+                question: "What is the main purpose of jQuery?",
+                options: ["To simplify JavaScript tasks", "To replace PHP", "To manage databases", "To create CSS styles"],
+                answer: 0,
+                explanation: "jQuery simplifies JavaScript tasks like DOM manipulation and event handling (Week 12 lecture)."
+            },
+            {
+                question: "Which jQuery selector hides all `<p>` elements?",
+                options: ["$('#p')", "$('p')", "$('.p')", "$('*p')"],
+                answer: 1,
+                explanation: "`$('p')` is the jQuery selector that targets all `<p>` elements for manipulation (Week 12 lecture)."
+            },
+            {
+                question: "Which jQuery method attaches an event handler for a click event?",
+                options: ["click()", "onClick()", "mouseclick()", "eventClick()"],
+                answer: 0,
+                explanation: "The `click()` method in jQuery attaches a handler for click events on selected elements (Week 12 lecture)."
+            },
+            {
+                question: "What does MVC stand for?",
+                options: ["Model, View, Controller", "Module, View, Component", "Model, Variable, Controller", "Main, View, Control"],
+                answer: 0,
+                explanation: "MVC stands for Model, View, Controller, a design pattern for structuring web applications (Week 13 lecture)."
+            },
+            {
+                question: "In MVC, what does the Model represent?",
+                options: ["The user interface", "The business logic and data", "The request handler", "The presentation layer"],
+                answer: 1,
+                explanation: "The Model represents the business logic and data, handling data operations in MVC (Week 13 lecture)."
+            },
+            {
+                question: "What is the role of the Controller in MVC?",
+                options: ["To display data to the user", "To manage database operations", "To mediate between Model and View", "To style the webpage"],
+                answer: 2,
+                explanation: "The Controller mediates between the Model and View, handling user input and updating both (Week 13 lecture)."
+            },
+            {
+                question: "Which component of MVC is responsible for the user interface?",
+                options: ["Model", "View", "Controller", "Database"],
+                answer: 1,
+                explanation: "The View is responsible for the user interface, displaying data to the user in MVC (Week 13 lecture)."
+            },
+            {
+                question: "What is an advantage of the MVC architecture?",
+                options: ["Slower development process", "Easier collaboration for multiple developers", "Increased complexity in debugging", "Limited scalability"],
+                answer: 1,
+                explanation: "MVC enables easier collaboration by separating concerns, allowing developers to work on different components (Week 13 lecture)."
+            },
+            {
+                question: "Which of the following is a popular PHP MVC framework?",
+                options: ["WordPress", "Laravel", "Joomla", "Drupal"],
+                answer: 1,
+                explanation: "Laravel is a popular PHP MVC framework, designed for structured and scalable web development (Week 13 lecture)."
+            },
+            {
+                question: "In MVC, what happens if the business logic changes?",
+                options: ["The View remains unaffected", "The Controller must be rewritten", "The Model is redesigned", "The View must be updated"],
+                answer: 0,
+                explanation: "In MVC, changes to business logic (Model) do not affect the View, due to separation of concerns (Week 13 lecture)."
+            },
+            {
+                question: "Which MVC component handles database operations?",
+                options: ["View", "Controller", "Model", "Router"],
+                answer: 2,
+                explanation: "The Model handles database operations, managing data and business logic in MVC (Week 13 lecture)."
+            },
+            {
+                question: "What is a disadvantage of MVC architecture?",
+                options: ["Fast development", "Hard to understand for beginners", "Easy debugging", "Simple method structure"],
+                answer: 1,
+                explanation: "MVC can be hard for beginners to understand due to its separation of concerns and complexity (Week 13 lecture)."
+            },
+            {
+                question: "Which of the following is NOT a PHP MVC framework?",
+                options: ["CodeIgniter", "Symfony", "WordPress", "CakePHP"],
+                answer: 2,
+                explanation: "WordPress is a content management system, not an MVC framework, unlike CodeIgniter, Symfony, and CakePHP (Week 13 lecture)."
+            },
+            {
+                question: "Which PHP function retrieves the size of an uploaded image?",
+                options: ["getimagesize()", "imagesize()", "file_size()", "image_info()"],
+                answer: 0,
+                explanation: "`getimagesize()` retrieves the size and type of an uploaded image, useful for validation (Week 4 lecture)."
+            },
+            {
+                question: "In CSS, what does the `sticky` position value do?",
+                options: ["Stays fixed in the viewport", "Toggles between relative and fixed based on scroll position", "Positions relative to the nearest ancestor", "Positions according to the normal flow"],
+                answer: 1,
+                explanation: "The `sticky` position toggles between relative and fixed based on scroll position, useful for headers (Week 9 lecture)."
+            },
+            {
+                question: "What is the purpose of the `enctype` attribute in a form?",
+                options: ["To specify the form’s action URL", "To define how form data is encoded", "To validate form data", "To set the form’s method"],
+                answer: 1,
+                explanation: "The `enctype` attribute defines how form data is encoded, such as `multipart/form-data` for file uploads (Week 4 lecture)."
+            },
+            {
+                question: "Which jQuery method hides an element when double-clicked?",
+                options: ["click()", "dblclick()", "mouseenter()", "mouseleave()"],
+                answer: 1,
+                explanation: "The `dblclick()` method in jQuery handles double-click events, such as hiding an element (Week 12 lecture)."
+            },
+            {
+                question: "In MySQL, what does the `OFFSET` keyword do in a `LIMIT` clause?",
+                options: ["Specifies the number of records to return", "Specifies the starting point for record retrieval", "Sorts the result set", "Filters records by condition"],
+                answer: 1,
+                explanation: "The `OFFSET` keyword specifies the starting point for record retrieval in a `LIMIT` clause, used for pagination (Week 8 lecture)."
+            },
+            {
+                question: "Which PHP function checks if a file was uploaded via HTTP POST?",
+                options: ["is_uploaded_file()", "file_exists()", "move_uploaded_file()", "file_get_contents()"],
+                answer: 0,
+                explanation: "`is_uploaded_file()` checks if a file was uploaded via HTTP POST, ensuring secure file handling (Week 4 lecture)."
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let selectedAnswers = new Array(questions.length).fill(null);
+
+        const quizSection = document.getElementById('quiz-section');
+        const resultSection = document.getElementById('result-section');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const progress = document.getElementById('progress');
+
+        function loadQuestion() {
+            const q = questions[currentQuestion];
+            questionText.textContent = `${currentQuestion + 1}. ${q.question}`;
+            optionsContainer.innerHTML = '';
+            q.options.forEach((option, index) => {
+                const div = document.createElement('div');
+                div.classList.add('option');
+                if (selectedAnswers[currentQuestion] === index) {
+                    div.classList.add('selected');
+                }
+                div.textContent = option;
+                div.addEventListener('click', () => selectOption(index));
+                optionsContainer.appendChild(div);
+            });
+            updateProgress();
+            updateButtons();
+        }
+
+        function selectOption(index) {
+            selectedAnswers[currentQuestion] = index;
+            loadQuestion();
+        }
+
+        function updateProgress() {
+            const percentage = ((currentQuestion + 1) / questions.length) * 100;
+            progress.style.width = `${percentage}%`;
+        }
+
+        function updateButtons() {
+            prevBtn.disabled = currentQuestion === 0;
+            nextBtn.textContent = currentQuestion === questions.length - 1 ? 'Submit' : 'Next';
+        }
+
+        function showResult() {
+            score = selectedAnswers.reduce((acc, answer, index) => {
+                return answer === questions[index].answer ? acc + 1 : acc;
+            }, 0);
+            quizSection.style.display = 'none';
+            resultSection.style.display = 'block';
+            resultSection.innerHTML = `<h2>Your Score: ${score} out of ${questions.length} (${(score / questions.length * 100).toFixed(2)}%)</h2>`;
+
+            questions.forEach((q, index) => {
+                const resultItem = document.createElement('div');
+                resultItem.classList.add('result-item');
+                const isCorrect = selectedAnswers[index] === q.answer;
+                resultItem.classList.add(isCorrect ? 'correct' : 'incorrect');
+                resultItem.innerHTML = `
+                    <h4>${index + 1}. ${q.question}</h4>
+                    <p><strong>Your Answer:</strong> ${selectedAnswers[index] !== null ? q.options[selectedAnswers[index]] : 'Not answered'}</p>
+                    <p><strong>Correct Answer:</strong> ${q.options[q.answer]}</p>
+                    ${!isCorrect && selectedAnswers[index] !== null ? `<p><strong>Explanation:</strong> ${q.explanation}</p>` : ''}
+                `;
+                resultSection.appendChild(resultItem);
+            });
+        }
+
+        prevBtn.addEventListener('click', () => {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                loadQuestion();
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                loadQuestion();
+            } else {
+                showResult();
+            }
+        });
+
+        loadQuestion();
+    </script>
+</body>
+</html>
